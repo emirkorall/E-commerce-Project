@@ -1,7 +1,6 @@
 import React from 'react';
+import NewArrivals from '../components/NewArrivals';
 import Carousel from '../components/Carousel';
-import FeaturedProducts from '../components/FeaturedProducts';
-import Categories from '../components/Categories';
 
 const HomePage = () => {
   return (
@@ -11,11 +10,8 @@ const HomePage = () => {
         <Carousel />
       </section>
 
-      {/* Featured Products Section */}
-      <FeaturedProducts />
-
-      {/* Categories Section */}
-      <Categories />
+      {/* New Arrivals Section */}
+      <NewArrivals />
     </div>
   );
 };
