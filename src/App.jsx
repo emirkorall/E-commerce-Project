@@ -14,20 +14,32 @@ import LoginPage from './pages/LoginPage';
 import CartPage from './pages/CartPage';
 import OrderPage from './pages/OrderPage';
 import ProtectedRoute from './components/ProtectedRoute';
+import axiosInstance from './utils/axios';
 import { fetchRoles, autoLogin } from './store/actions/thunk';
+import { setUser } from './store/actions/clientActions';
 
 function App() {
   const dispatch = useDispatch();
 
+
+
+
   useEffect(() => {
-    // Check for token and verify it on app start
-    const token = localStorage.getItem('token');
-    if (token) {
-      dispatch(autoLogin());
-    }
-    // Fetch roles
-    dispatch(fetchRoles());
-  }, [dispatch]);
+  const token = localStorage.getItem('token');
+  const user = localStorage.getItem('user');
+
+  if (token) {
+    axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  }
+
+  if (user) {
+    dispatch(setUser(JSON.parse(user)));
+  }
+
+  dispatch(fetchRoles());
+}, [dispatch]);
+
+  
 
   return (
     <Router>

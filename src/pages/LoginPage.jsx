@@ -5,7 +5,8 @@ import { useForm } from 'react-hook-form';
 import axiosInstance from '../utils/axios';
 import { useDispatch } from 'react-redux';
 import { setUser } from '../store/actions/clientActions';
-import { autoLogin } from '../store/actions/thunk';
+import { autoLogin, fetchRoles } from '../store/actions/thunk';
+import { jwtDecode } from "jwt-decode";
 
 const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -15,7 +16,7 @@ const LoginPage = () => {
   const dispatch = useDispatch();
   const { register, handleSubmit, formState: { errors }, setValue } = useForm();
 
-  // Load saved credentials on component mount
+  // Load saved credentials if "Remember Me" was previously checked
   useEffect(() => {
     const savedEmail = localStorage.getItem('rememberedEmail');
     const savedPassword = localStorage.getItem('rememberedPassword');
@@ -28,34 +29,31 @@ const LoginPage = () => {
     }
   }, [setValue]);
 
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      dispatch(autoLogin());
+    }
+    dispatch(fetchRoles());
+  }, [dispatch]);
+
   const onSubmit = async (data) => {
     setIsLoading(true);
     setError('');
     try {
-      console.log('Login attempt with data:', { ...data, password: '***' });
-      const response = await axiosInstance.post('/login', {
+      const response = await axiosInstance.post('/api/auth/login', {
         email: data.email,
-        password: data.password
+        password: data.password,
       });
+  
+      const { id, name, email, role, token } = response.data;
+      const user = { id, name, email, role };
+  
       
-      console.log('Login response:', response.data);
-
-      if (!response.data || !response.data.token) {
-        throw new Error('Invalid response from server');
-      }
-
-      const { token, user, adressList, creditCards } = response.data;
-      
-      // Ensure user object has an id, using email as fallback if needed
-      const userWithId = {
-        ...user,
-        id: user?.id || user?.email // Use user.id from response or fallback to email
-      };
-
-      // Always store the token
+      localStorage.setItem('user', JSON.stringify(user));
       localStorage.setItem('token', token);
-      
-      // Handle Remember Me for credentials
+      axiosInstance.defaults.headers.common['Authorization'] = token;
+  
       if (data.rememberMe) {
         localStorage.setItem('rememberMe', 'true');
         localStorage.setItem('rememberedEmail', data.email);
@@ -65,32 +63,29 @@ const LoginPage = () => {
         localStorage.removeItem('rememberedEmail');
         localStorage.removeItem('rememberedPassword');
       }
-      
-      // Set token in axios headers
-      axiosInstance.defaults.headers.common['Authorization'] = token;
-      
-      // Update user state
-      dispatch(setUser(userWithId, adressList || [], creditCards || []));
-      
-      // Trigger autoLogin after successful login to ensure header updates
-      dispatch(autoLogin());
-      
-      // Navigate to the page user was trying to access, or home page
+  
+      dispatch(setUser(user));
       const from = location.state?.from?.pathname || '/';
       navigate(from);
     } catch (error) {
-      console.error('Login error:', error);
-      console.error('Error response:', error.response?.data);
-      setError(error.response?.data?.message || 'Login failed. Please try again.');
+      if (error.response?.data?.message) {
+        setError(error.response.data.message);
+      } else if (error.response?.status === 401) {
+        setError('Invalid email or password. Please try again.');
+      } else if (error.response?.status === 500) {
+        setError('Server error. Please try again later.');
+      } else {
+        setError('Login failed. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
   };
+  
 
   return (
     <div className="min-h-screen bg-white py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md mx-auto">
-        {/* Header */}
         <div className="text-center">
           <h2 className="text-3xl font-bold text-black">
             Welcome Back
@@ -98,7 +93,6 @@ const LoginPage = () => {
           <p className="mt-2 text-gray-600">Sign in to your account</p>
         </div>
 
-        {/* Login Form */}
         <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
@@ -107,7 +101,6 @@ const LoginPage = () => {
           )}
 
           <div className="space-y-4">
-            {/* Email Field */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                 Email
@@ -136,7 +129,6 @@ const LoginPage = () => {
               )}
             </div>
 
-            {/* Password Field */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                 Password
@@ -166,7 +158,6 @@ const LoginPage = () => {
             </div>
           </div>
 
-          {/* Remember Me & Forgot Password */}
           <div className="flex items-center justify-between">
             <div className="flex items-center">
               <input
@@ -184,7 +175,6 @@ const LoginPage = () => {
             </Link>
           </div>
 
-          {/* Submit Button */}
           <button
             type="submit"
             disabled={isLoading}
@@ -193,7 +183,6 @@ const LoginPage = () => {
             {isLoading ? 'Signing in...' : 'Sign in'}
           </button>
 
-          {/* Social Login */}
           <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
@@ -223,7 +212,6 @@ const LoginPage = () => {
           </div>
         </form>
 
-        {/* Sign Up Link */}
         <p className="text-center text-sm text-gray-600 mt-6">
           Don't have an account?{' '}
           <Link to="/signup" className="font-medium text-purple-600 hover:text-purple-500">

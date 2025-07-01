@@ -15,7 +15,6 @@ export const SET_LANGUAGE = "SET_LANGUAGE";
 const clientReducer = (state = initialState, action) => {
   switch (action.type) {
     case SET_USER:
-      console.log(action.payload);
       return {
         ...state,
         user: action.payload.user,

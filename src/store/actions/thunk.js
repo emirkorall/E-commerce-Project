@@ -1,6 +1,6 @@
 import axiosInstance from '../../utils/axios';
+import  * as jwtDecode  from 'jwt-decode';
 import { setRoles } from './clientActions';
-import { setUser } from './clientActions';
 import { 
   setCategories, 
   setProductList, 
@@ -11,7 +11,6 @@ import {
   setFilter 
 } from './productActions';
 import { featuredProducts } from '../../components/ProductCard';
-import { setCart } from './shoppingCartActions';
 import { clearCart } from '../slices/cartSlice';
 
 export const fetchRoles = () => async (dispatch, getState) => {
@@ -25,7 +24,6 @@ export const fetchRoles = () => async (dispatch, getState) => {
     const response = await axiosInstance.get('/roles');
     dispatch(setRoles(response.data));
   } catch (error) {
-    console.error('Error fetching roles:', error);
     throw error;
   }
 };
@@ -33,49 +31,30 @@ export const fetchRoles = () => async (dispatch, getState) => {
 // Signup thunk
 export const signup = (userData) => async (dispatch) => {
   try {
-    console.log('Signup request data:', userData);
-    const response = await axiosInstance.post('/signup', userData);
-    console.log('Signup response:', response.data);
+    const response = await axiosInstance.post('/api/auth/signup', userData);
     return response.data;
   } catch (error) {
-    console.error('Signup error:', error);
     if (error.response) {
-      console.error('Error response data:', error.response.data);
-      console.error('Error response status:', error.response.status);
     }
     throw error;
   }
 };
 
-// Auto login thunk
+// Auto login thunk - checks for existing token and sets up user state
 export const autoLogin = () => async (dispatch) => {
   try {
     const token = localStorage.getItem('token');
-    if (!token) return null;
+    if (!token) return;
 
     axiosInstance.defaults.headers.common['Authorization'] = token;
-    const response = await axiosInstance.get('/verify');
 
-    if (!response?.data) {
-      throw new Error('No data received from verify endpoint');
-    }
+    const decoded = jwtDecode(token); // Decode JWT
+    const { id, name, email, role } = decoded;
 
-    const { name, email, role_id, token: newToken } = response.data;
-    
-    const user = {
-      name,
-      email,
-      role_id,
-      id: response.data.id || email
-    };
+    dispatch(setUser({ id, name, email }, [], []));
+    dispatch(setRoles([{ authority: role }]));
 
-    if (newToken) {
-      localStorage.setItem('token', newToken);
-      axiosInstance.defaults.headers.common['Authorization'] = newToken;
-    }
-    
-    dispatch(setUser(user, [], []));
-    return { payload: user };
+    return { success: true };
   } catch (error) {
     localStorage.removeItem('token');
     delete axiosInstance.defaults.headers.common['Authorization'];
@@ -90,7 +69,6 @@ export const fetchCategories = () => async (dispatch) => {
     dispatch(setCategories(response.data));
     return response.data;
   } catch (error) {
-    console.error('Error fetching categories:', error);
     throw error;
   }
 };

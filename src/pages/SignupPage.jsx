@@ -52,11 +52,11 @@ const SignupPage = () => {
     try {
       const userData = {
         name: data.name,
+        surname: data.surname,
         email: data.email,
         password: data.password,
         role_id: data.role_id
       };
-
       if (data.role_id === '3') {
         userData.store = {
           name: data.store_name,
@@ -65,7 +65,6 @@ const SignupPage = () => {
           bank_account: data.bank_account,
         };
       }
-
       await dispatch(signup(userData));
       navigate(-1, { state: { message: 'You need to click link in email to activate your account!' } });
     } catch (error) {
@@ -93,23 +92,45 @@ const SignupPage = () => {
 
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                Name
+                First Name
               </label>
               <input
                 id="name"
                 type="text"
                 autoComplete="off"
                 {...register('name', {
-                  required: 'Name is required',
+                  required: 'First name is required',
                   minLength: {
-                    value: 3,
-                    message: 'Name must be at least 3 characters',
+                    value: 2,
+                    message: 'First name must be at least 2 characters',
                   },
                 })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200 bg-white"
               />
               {errors.name && (
                 <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
+              )}
+            </div>
+
+            <div>
+              <label htmlFor="surname" className="block text-sm font-medium text-gray-700 mb-1">
+                Last Name
+              </label>
+              <input
+                id="surname"
+                type="text"
+                autoComplete="off"
+                {...register('surname', {
+                  required: 'Last name is required',
+                  minLength: {
+                    value: 2,
+                    message: 'Last name must be at least 2 characters',
+                  },
+                })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200 bg-white"
+              />
+              {errors.surname && (
+                <p className="mt-1 text-sm text-red-600">{errors.surname.message}</p>
               )}
             </div>
 
