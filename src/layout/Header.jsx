@@ -5,6 +5,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import Navbar from './Navbar';
 import axiosInstance from '../utils/axios';
 import { setUser } from '../store/actions/clientActions';
+import { clearCart } from '../store/slices/cartSlice';
 
 // Define the SVG path for the user icon
 const userSvgPath = "M224 256c70.7 0 128-57.3 128-128S294.7 0 224 0 96 57.3 96 128s57.3 128 128 128zm89.6 32h-16.7c-22.2 10.2-46.9 16-72.9 16s-50.6-5.8-72.9-16h-16.7C60.2 288 0 348.2 0 422.4V464c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48v-41.6c0-74.2-60.2-134.4-134.4-134.4z";
@@ -33,8 +34,11 @@ const Header = () => {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('cart'); // Clear cart from localStorage
     delete axiosInstance.defaults.headers.common['Authorization'];
     dispatch(setUser({}, [], []));
+    dispatch(clearCart()); // Clear cart in Redux
     setIsDropdownOpen(false);
     navigate('/login');
   };
@@ -56,7 +60,7 @@ const Header = () => {
       {/* RGB Border Effect */}
       <div className="absolute top-0 w-full h-[2px] bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 animate-gradient-x"></div>
       
-      <div className="container mx-auto px-4">
+      <div className="w-full max-w-screen-2xl mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">

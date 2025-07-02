@@ -27,7 +27,7 @@ const SignupPage = () => {
     formState: { errors },
   } = useForm({
     defaultValues: {
-      role_id: '2', // Default to Customer role
+      role_id: 2, // Default to Customer role
     },
   });
 
@@ -57,7 +57,7 @@ const SignupPage = () => {
         password: data.password,
         role_id: data.role_id
       };
-      if (data.role_id === '3') {
+      if (data.role_id === 3) {
         userData.store = {
           name: data.store_name,
           phone: data.store_phone,
@@ -215,7 +215,7 @@ const SignupPage = () => {
               )}
             </div>
 
-            {watch('role_id') === '3' && (
+            {watch('role_id') === 3 && (
               <div className="space-y-4 sm:space-y-6 border-t border-gray-200 pt-4 sm:pt-6">
                 <h3 className="text-lg font-semibold text-gray-900">Store Information</h3>
                 

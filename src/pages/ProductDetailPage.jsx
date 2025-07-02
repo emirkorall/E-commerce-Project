@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { FaStar, FaShoppingCart, FaHeart, FaArrowLeft, FaTruck, FaUndo, FaShieldAlt, FaCheck, FaTrash } from 'react-icons/fa';
 import { featuredProducts } from '../components/ProductCard';
 import { addItemToCart, removeItemFromCart, updateItemQuantity } from '../store/slices/cartSlice';
+import { addItemToUserCart, removeItemFromUserCart, updateUserCartItemQuantity } from '../store/actions/thunk';
 
 const ProductDetailPage = () => {
   const { id } = useParams();
@@ -14,6 +15,7 @@ const ProductDetailPage = () => {
   const cartItems = useSelector(state => state.cart.items);
   const productInCart = cartItems.find(item => item.id === parseInt(id));
   const product = featuredProducts.find(p => p.id === parseInt(id));
+  const user = useSelector(state => state.auth.user);
 
   useEffect(() => {
     if (!product) {
@@ -41,8 +43,10 @@ const ProductDetailPage = () => {
     const newQuantity = quantity + value;
     if (newQuantity >= 1 && newQuantity <= 10) {
       setQuantity(newQuantity);
-      if (productInCart) {
-        dispatch(updateItemQuantity({ id: productInCart.id, quantity: newQuantity }));
+      if (user?.id) {
+        dispatch(updateUserCartItemQuantity(product.id, newQuantity));
+      } else {
+        dispatch(updateItemQuantity({ id: product.id, quantity: newQuantity }));
       }
     }
   };
@@ -179,7 +183,13 @@ const ProductDetailPage = () => {
                   <div className="space-y-3">
                     <button 
                       className="w-full bg-purple-600 text-white py-3 px-6 rounded-md hover:bg-purple-700 transition duration-300 flex items-center justify-center font-medium"
-                      onClick={() => dispatch(removeItemFromCart(product.id))}
+                      onClick={() => {
+                        if (user?.id) {
+                          dispatch(removeItemFromUserCart(product.id));
+                        } else {
+                          dispatch(removeItemFromCart(product.id));
+                        }
+                      }}
                     >
                       <FaTrash className="mr-2" />
                       Remove from Cart
@@ -190,7 +200,13 @@ const ProductDetailPage = () => {
                 ) : (
                   <button 
                     className="w-full bg-purple-600 text-white py-3 px-6 rounded-md hover:bg-purple-700 transition duration-300 flex items-center justify-center font-medium"
-                    onClick={() => dispatch(addItemToCart({ ...product, quantity }))}
+                    onClick={() => {
+                      if (user?.id) {
+                        dispatch(addItemToUserCart(product));
+                      } else {
+                        dispatch(addItemToCart({ ...product, quantity }));
+                      }
+                    }}
                   >
                     <FaShoppingCart className="mr-2" />
                     Add to Cart

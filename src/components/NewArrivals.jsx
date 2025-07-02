@@ -5,7 +5,7 @@ import { FaStar } from 'react-icons/fa';
 const NewArrivals = () => {
   return (
     <section className="w-full py-20 bg-gradient-to-b from-gray-50 to-white">
-      <div className="container mx-auto px-4">
+      <div className="w-full max-w-screen-2xl mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold mb-4 relative inline-block group">
             New Arrivals

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { removeItemFromCart, updateItemQuantity } from '../store/slices/cartSlice';
+import { removeItemFromUserCart, updateUserCartItemQuantity } from '../store/actions/thunk';
 import { FaTrash } from 'react-icons/fa';
 import axiosInstance from '../utils/axios';
 import { autoLogin } from '../store/actions/thunk';
@@ -51,8 +52,8 @@ const CartPage = () => {
   };
 
   return (
-    <div className="container mx-auto px-2 py-4 min-h-[60vh] flex flex-col justify-start">
-      <h1 className="text-2xl font-bold mb-4 text-center text-gray-800">Your Shopping Cart</h1>
+    <div className="container mx-auto px-2 py-4 min-h-[60vh] flex flex-col justify-start" role="main" aria-labelledby="cart-heading">
+      <h1 className="text-2xl font-bold mb-4 text-center text-gray-800" id="cart-heading">Your Shopping Cart</h1>
       {items.length === 0 ? (
         <p className="text-center text-gray-600 text-lg">Your cart is empty.</p>
       ) : (
@@ -65,6 +66,7 @@ const CartPage = () => {
                   checked={selectedIds.includes(item.id)}
                   onChange={() => setSelectedIds(prev => prev.includes(item.id) ? prev.filter(i => i !== item.id) : [...prev, item.id])}
                   className="mr-2 mt-1 sm:mt-0"
+                  aria-label={`Select ${item.name} for checkout`}
                 />
                 <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded self-center sm:self-auto" />
                 <div className="flex-1">
@@ -73,22 +75,25 @@ const CartPage = () => {
                   <div className="flex items-center mt-1 space-x-2">
                     <button
                       className="px-2 py-1 bg-gray-200 rounded text-xs font-bold hover:bg-gray-300"
-                      onClick={() => dispatch(updateItemQuantity({ id: item.id, quantity: Math.max(1, item.quantity - 1) }))}
+                      onClick={() => user?.id ? dispatch(updateUserCartItemQuantity(item.id, Math.max(1, item.quantity - 1))) : dispatch(updateItemQuantity({ id: item.id, quantity: Math.max(1, item.quantity - 1) }))}
                       disabled={item.quantity <= 1}
+                      aria-label={`Decrease quantity of ${item.name}`}
                     >-</button>
                     <span className="text-xs text-gray-700">{item.quantity}</span>
                     <button
                       className="px-2 py-1 bg-gray-200 rounded text-xs font-bold hover:bg-gray-300"
-                      onClick={() => dispatch(updateItemQuantity({ id: item.id, quantity: item.quantity + 1 }))}
+                      onClick={() => user?.id ? dispatch(updateUserCartItemQuantity(item.id, item.quantity + 1)) : dispatch(updateItemQuantity({ id: item.id, quantity: item.quantity + 1 }))}
                       disabled={item.quantity >= 10}
+                      aria-label={`Increase quantity of ${item.name}`}
                     >+</button>
                   </div>
                 </div>
                 <div className="flex flex-col items-start sm:items-end space-y-1">
                   <p className="text-base font-semibold text-gray-700">${(item.price * item.quantity).toFixed(2)}</p>
                   <button 
-                    onClick={() => dispatch(removeItemFromCart(item.id))} 
+                    onClick={() => user?.id ? dispatch(removeItemFromUserCart(item.id)) : dispatch(removeItemFromCart(item.id))} 
                     className="bg-purple-600 hover:bg-purple-700 text-white transition-colors duration-200 text-xs px-2 py-1 rounded flex items-center"
+                    aria-label={`Remove ${item.name} from cart`}
                   >
                     <FaTrash className="mr-1" /> Remove
                   </button>
@@ -113,11 +118,12 @@ const CartPage = () => {
               </div>
             </div>
             <button
+              type="button"
               onClick={handleProceedToCheckout}
-              disabled={selectedItems.length === 0 || isLoading}
-              className="w-full bg-purple-600 text-white py-2 px-3 rounded hover:bg-purple-700 transition duration-300 font-semibold text-base mt-auto disabled:opacity-50"
+              className="w-full bg-purple-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-purple-700 transition-colors duration-200 mt-4"
+              aria-label="Proceed to checkout"
             >
-              {isLoading ? 'Loading...' : 'Proceed to Checkout'}
+              Proceed to Checkout
             </button>
           </div>
         </div>

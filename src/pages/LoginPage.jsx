@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import axiosInstance from '../utils/axios';
 import { useDispatch } from 'react-redux';
 import { setUser } from '../store/actions/clientActions';
-import { autoLogin, fetchRoles } from '../store/actions/thunk';
+import { autoLogin, fetchRoles, fetchUserCart } from '../store/actions/thunk';
 import { jwtDecode } from "jwt-decode";
 
 const LoginPage = () => {
@@ -19,23 +19,13 @@ const LoginPage = () => {
   // Load saved credentials if "Remember Me" was previously checked
   useEffect(() => {
     const savedEmail = localStorage.getItem('rememberedEmail');
-    const savedPassword = localStorage.getItem('rememberedPassword');
     const rememberMe = localStorage.getItem('rememberMe') === 'true';
 
-    if (rememberMe && savedEmail && savedPassword) {
+    if (rememberMe && savedEmail) {
       setValue('email', savedEmail);
-      setValue('password', savedPassword);
       setValue('rememberMe', true);
     }
   }, [setValue]);
-
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      dispatch(autoLogin());
-    }
-    dispatch(fetchRoles());
-  }, [dispatch]);
 
   const onSubmit = async (data) => {
     setIsLoading(true);
@@ -47,24 +37,23 @@ const LoginPage = () => {
       });
   
       const { id, name, email, role, token } = response.data;
-      const user = { id, name, email, role };
+      const user = { id, name, email, role: role.authority };
   
       
       localStorage.setItem('user', JSON.stringify(user));
       localStorage.setItem('token', token);
-      axiosInstance.defaults.headers.common['Authorization'] = token;
+      axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
   
       if (data.rememberMe) {
         localStorage.setItem('rememberMe', 'true');
         localStorage.setItem('rememberedEmail', data.email);
-        localStorage.setItem('rememberedPassword', data.password);
       } else {
         localStorage.removeItem('rememberMe');
         localStorage.removeItem('rememberedEmail');
-        localStorage.removeItem('rememberedPassword');
       }
   
       dispatch(setUser(user));
+      await dispatch(fetchUserCart());
       const from = location.state?.from?.pathname || '/';
       navigate(from);
     } catch (error) {
@@ -87,13 +76,13 @@ const LoginPage = () => {
     <div className="min-h-screen bg-white py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md mx-auto">
         <div className="text-center">
-          <h2 className="text-3xl font-bold text-black">
+          <h2 className="text-3xl font-bold text-black" id="login-heading">
             Welcome Back
           </h2>
           <p className="mt-2 text-gray-600">Sign in to your account</p>
         </div>
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)} role="form" aria-labelledby="login-heading">
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
               {error}
@@ -122,6 +111,7 @@ const LoginPage = () => {
                   })}
                   className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
                   placeholder="Enter your email"
+                  aria-label="Email address"
                 />
               </div>
               {errors.email && (
@@ -150,6 +140,7 @@ const LoginPage = () => {
                   })}
                   className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
                   placeholder="Enter your password"
+                  aria-label="Password"
                 />
               </div>
               {errors.password && (
@@ -165,6 +156,7 @@ const LoginPage = () => {
                 type="checkbox"
                 {...register('rememberMe')}
                 className="h-4 w-4 text-purple-500 focus:ring-purple-500 border-gray-300 rounded"
+                aria-label="Remember me"
               />
               <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
                 Remember me
@@ -179,6 +171,7 @@ const LoginPage = () => {
             type="submit"
             disabled={isLoading}
             className="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            aria-label="Sign in"
           >
             {isLoading ? 'Signing in...' : 'Sign in'}
           </button>

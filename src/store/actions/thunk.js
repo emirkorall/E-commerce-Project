@@ -11,7 +11,7 @@ import {
   setFilter 
 } from './productActions';
 import { featuredProducts } from '../../components/ProductCard';
-import { clearCart } from '../slices/cartSlice';
+import { clearCart, setCart } from '../slices/cartSlice';
 
 export const fetchRoles = () => async (dispatch, getState) => {
   
@@ -124,6 +124,52 @@ export const placeOrder = (orderData) => async (dispatch) => {
     return response.data;
   } catch (error) {
     console.error('Error placing order:', error);
+    throw error;
+  }
+};
+
+// Fetch user cart from backend
+export const fetchUserCart = () => async (dispatch) => {
+  try {
+    const response = await axiosInstance.get('/api/cart');
+    dispatch(setCart({ items: response.data.items }));
+    return response.data.items;
+  } catch (error) {
+    // If error (e.g., not logged in), clear cart
+    dispatch(setCart({ items: [] }));
+    throw error;
+  }
+};
+
+// Add item to cart in backend
+export const addItemToUserCart = (item) => async (dispatch) => {
+  try {
+    const response = await axiosInstance.post('/api/cart/add', item);
+    dispatch(setCart({ items: response.data.items }));
+    return response.data.items;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Remove item from cart in backend
+export const removeItemFromUserCart = (itemId) => async (dispatch) => {
+  try {
+    const response = await axiosInstance.post('/api/cart/remove', { id: itemId });
+    dispatch(setCart({ items: response.data.items }));
+    return response.data.items;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Update item quantity in backend
+export const updateUserCartItemQuantity = (id, quantity) => async (dispatch) => {
+  try {
+    const response = await axiosInstance.post('/api/cart/update', { id, quantity });
+    dispatch(setCart({ items: response.data.items }));
+    return response.data.items;
+  } catch (error) {
     throw error;
   }
 };

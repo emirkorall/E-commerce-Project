@@ -21,9 +21,6 @@ import { setUser } from './store/actions/clientActions';
 function App() {
   const dispatch = useDispatch();
 
-
-
-
   useEffect(() => {
   const token = localStorage.getItem('token');
   const user = localStorage.getItem('user');
@@ -38,8 +35,6 @@ function App() {
 
   dispatch(fetchRoles());
 }, [dispatch]);
-
-  
 
   return (
     <Router>

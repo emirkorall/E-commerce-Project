@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { FaStar, FaShoppingCart, FaHeart, FaFilter, FaSpinner, FaChevronLeft, FaChevronRight, FaTag, FaSortAmountDown, FaTrash } from 'react-icons/fa';
 import { fetchProducts, fetchCategories } from '../store/actions/thunk';
 import { addItemToCart, removeItemFromCart } from '../store/slices/cartSlice';
+import { addItemToUserCart, removeItemFromUserCart } from '../store/actions/thunk';
 
 const ShopPage = () => {
   const { category } = useParams();
@@ -17,6 +18,7 @@ const ShopPage = () => {
     priceRange: [0, 3000],
     rating: 'all',
   });
+  const user = useSelector(state => state.user);
 
   // Category mapping for URL and display
   const categoryMap = {
@@ -290,7 +292,7 @@ const ShopPage = () => {
                                   className="flex-1 bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 transition duration-300 flex items-center justify-center text-xs sm:text-sm font-medium"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    dispatch(removeItemFromCart(product.id));
+                                    user?.id ? dispatch(removeItemFromUserCart(product.id)) : dispatch(removeItemFromCart(product.id));
                                   }}
                                 >
                                   <FaTrash className="mr-2" />
@@ -301,7 +303,7 @@ const ShopPage = () => {
                                   className="flex-1 bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 transition duration-300 flex items-center justify-center text-xs sm:text-sm font-medium"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    dispatch(addItemToCart(product));
+                                    user?.id ? dispatch(addItemToUserCart(product)) : dispatch(addItemToCart(product));
                                   }}
                                 >
                           <FaShoppingCart className="mr-2" />
