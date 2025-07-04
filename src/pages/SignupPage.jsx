@@ -27,7 +27,7 @@ const SignupPage = () => {
     formState: { errors },
   } = useForm({
     defaultValues: {
-      role_id: 2, // Default to Customer role
+      authority: 'USER', // Default to User role
     },
   });
 
@@ -55,9 +55,9 @@ const SignupPage = () => {
         surname: data.surname,
         email: data.email,
         password: data.password,
-        role_id: data.role_id
+        authority: data.authority
       };
-      if (data.role_id === 3) {
+      if (data.authority === "STORE") {
         userData.store = {
           name: data.store_name,
           phone: data.store_phone,
@@ -202,20 +202,20 @@ const SignupPage = () => {
                 Role
               </label>
               <select
-                id="role"
-                {...register('role_id', { required: 'Role is required' })}
+                id="authority"
+                {...register('authority', { required: 'Role is required' })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition duration-200 bg-white"
               >
-                <option value="1">Admin</option>
-                <option value="2">Customer</option>
-                <option value="3">Store</option>
+                <option value="USER">User</option>
+                <option value="ADMIN">Admin</option>
+                <option value="STORE">Store</option>
               </select>
-              {errors.role_id && (
-                <p className="mt-1 text-sm text-red-600">{errors.role_id.message}</p>
+              {errors.authority && (
+                <p className="mt-1 text-sm text-red-600">{errors.authority.message}</p>
               )}
             </div>
 
-            {watch('role_id') === 3 && (
+            {watch('authority') === "STORE" && (
               <div className="space-y-4 sm:space-y-6 border-t border-gray-200 pt-4 sm:pt-6">
                 <h3 className="text-lg font-semibold text-gray-900">Store Information</h3>
                 
